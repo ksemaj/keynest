@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+/* Remove default body background so the transparent window shows through */
+body {
+  margin: 0;
+  background: transparent;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Display",
+    "Segoe UI",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}

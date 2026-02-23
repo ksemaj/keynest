@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install:*)",
+      "Bash(pnpm approve-builds:*)",
+      "Bash(pnpm:*)",
+      "Bash(python3:*)",
+      "Bash(source \"$HOME/.cargo/env\" && cargo tauri icon apps/desktop/src-tauri/icons/app-icon.png --output apps/desktop/src-tauri/icons 2>&1)",
+      "Bash(source \"$HOME/.cargo/env\" && pnpm --filter @keynest/desktop tauri:dev 2>&1)",
+      "Bash(source \"$HOME/.cargo/env\" && cd /Users/james/Desktop/Projects/PWM/apps/desktop && pnpm tauri dev 2>&1)",
+      "Bash(git init && git add . && git commit -m \"$\\(cat <<'EOF'\nInitial Keynest scaffold\n\n- pnpm + Turborepo monorepo\n- packages/crypto: Argon2id KDF, AES-256-GCM, ECDH sharing, HIBP breach check\n- packages/vault: vault item types and encrypt/decrypt lifecycle\n- apps/server: Hono API, JWT auth, Drizzle/PostgreSQL schema\n- apps/desktop: Tauri 2 floating overlay, React/TS, Framer Motion\n- apps/extension: WebExtension MV3 for Chrome/Firefox/Safari\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>\nEOF\n\\)\" 2>&1)"
+    ]
+  }
+}
