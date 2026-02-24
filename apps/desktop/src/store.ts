@@ -7,6 +7,8 @@
 
 import { create } from "zustand";
 import type { VaultItem } from "@keynest/vault";
+import { loadSettings, type AppSettings } from "./lib/local-vault.ts";
+
 export type AppView =
   | "locked"
   | "unlock"
@@ -16,6 +18,8 @@ export type AppView =
   | "item-detail"
   | "add-item"
   | "settings";
+
+export type SortOrder = "az" | "recent" | "fav";
 
 interface KeynestState {
   view: AppView;
@@ -33,6 +37,15 @@ interface KeynestState {
   // Selected item (for detail view)
   selectedItemId: string | null;
 
+  // Item being edited (null = create mode, id = edit mode)
+  editingItemId: string | null;
+
+  // Search sort order
+  sortOrder: SortOrder;
+
+  // Persisted settings
+  settings: AppSettings;
+
   // Actions
   setView: (view: AppView) => void;
   unlock: (key: CryptoKey, items: VaultItem[]) => void;
@@ -41,6 +54,9 @@ interface KeynestState {
   setSearchQuery: (query: string) => void;
   setAutofillContext: (hostname: string | null, position: { x: number; y: number } | null) => void;
   setSelectedItem: (id: string | null) => void;
+  setEditingItem: (id: string | null) => void;
+  setSortOrder: (order: SortOrder) => void;
+  saveSettings: (settings: AppSettings) => void;
 }
 
 export const useKeynestStore = create<KeynestState>((set) => ({
@@ -52,6 +68,9 @@ export const useKeynestStore = create<KeynestState>((set) => ({
   autofillHostname: null,
   autofillFieldPosition: null,
   selectedItemId: null,
+  editingItemId: null,
+  sortOrder: "az",
+  settings: loadSettings(),
 
   setView: (view) => set({ view }),
 
@@ -67,6 +86,7 @@ export const useKeynestStore = create<KeynestState>((set) => ({
       searchQuery: "",
       autofillHostname: null,
       selectedItemId: null,
+      editingItemId: null,
     }),
 
   setItems: (items) => set({ items }),
@@ -77,4 +97,10 @@ export const useKeynestStore = create<KeynestState>((set) => ({
     set({ autofillHostname, autofillFieldPosition }),
 
   setSelectedItem: (selectedItemId) => set({ selectedItemId }),
+
+  setEditingItem: (editingItemId) => set({ editingItemId }),
+
+  setSortOrder: (sortOrder) => set({ sortOrder }),
+
+  saveSettings: (settings) => set({ settings }),
 }));

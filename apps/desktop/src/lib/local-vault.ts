@@ -115,7 +115,38 @@ export function saveStoredItem(item: StoredItem): void {
   localStorage.setItem(ITEMS_KEY, JSON.stringify(items));
 }
 
+export function updateStoredItem(item: StoredItem): void {
+  const items = loadStoredItems().map((i) => (i.id === item.id ? item : i));
+  localStorage.setItem(ITEMS_KEY, JSON.stringify(items));
+}
+
 export function deleteStoredItem(id: string): void {
   const items = loadStoredItems().filter((i) => i.id !== id);
   localStorage.setItem(ITEMS_KEY, JSON.stringify(items));
+}
+
+// ---------------------------------------------------------------------------
+// Settings persistence
+// ---------------------------------------------------------------------------
+
+const SETTINGS_KEY = "keynest:settings";
+
+export interface AppSettings {
+  /** Minutes of inactivity before the vault auto-locks. null = never. */
+  autoLockMinutes: number | null;
+}
+
+const DEFAULT_SETTINGS: AppSettings = { autoLockMinutes: 15 };
+
+export function loadSettings(): AppSettings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    return raw ? { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<AppSettings>) } : DEFAULT_SETTINGS;
+  } catch {
+    return DEFAULT_SETTINGS;
+  }
+}
+
+export function saveSettings(settings: AppSettings): void {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
 }
