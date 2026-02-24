@@ -5,6 +5,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
+import { invoke } from "@tauri-apps/api/core";
 import { useKeynestStore } from "../store.ts";
 import type { VaultItem } from "@keynest/vault";
 
@@ -16,7 +17,7 @@ const TYPE_ICONS: Record<VaultItem["type"], string> = {
 };
 
 export function SearchView() {
-  const { items, setView } = useKeynestStore();
+  const { items, setView, setSelectedItem, lock } = useKeynestStore();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -25,11 +26,16 @@ export function SearchView() {
     ? items.filter((item) =>
         item.name.toLowerCase().includes(query.toLowerCase()),
       )
-    : items.slice(0, 8); // Show recent 8 by default
+    : items.slice(0, 8);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  function openItem(item: VaultItem) {
+    setSelectedItem(item.id);
+    setView("item-detail");
+  }
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "ArrowDown") {
@@ -38,7 +44,16 @@ export function SearchView() {
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIndex((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const item = filtered[selectedIndex];
+      if (item) openItem(item);
     }
+  }
+
+  function handleLock() {
+    lock();
+    invoke("hide_overlay");
   }
 
   return (
@@ -72,6 +87,7 @@ export function SearchView() {
             {filtered.map((item, index) => (
               <button
                 key={item.id}
+                onClick={() => openItem(item)}
                 onMouseEnter={() => setSelectedIndex(index)}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
                   index === selectedIndex ? "bg-indigo-500/20" : "hover:bg-white/5"
@@ -80,7 +96,7 @@ export function SearchView() {
                 <span className="text-base shrink-0">{TYPE_ICONS[item.type]}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-white/90 text-sm font-medium truncate">{item.name}</p>
-                  {item.hostname && (
+                  {"hostname" in item && item.hostname && (
                     <p className="text-white/30 text-xs truncate">{item.hostname}</p>
                   )}
                 </div>
@@ -100,7 +116,16 @@ export function SearchView() {
           <ActionChip icon="+" label="New item" onClick={() => setView("add-item")} />
           <ActionChip icon="⚙" label="Settings" onClick={() => setView("settings")} />
         </div>
-        <span className="text-white/20 text-xs">{items.length} items</span>
+        <button
+          onClick={handleLock}
+          className="flex items-center gap-1.5 text-white/25 hover:text-white/50 text-xs transition-colors"
+          title="Lock vault"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <span>{items.length} items</span>
+        </button>
       </div>
     </motion.div>
   );

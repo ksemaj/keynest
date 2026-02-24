@@ -9,10 +9,10 @@
  * remaining usable on mid-range hardware (~500ms on modern hardware).
  */
 
-// Argon2id parameters
-// These must NEVER be reduced after launch without a migration path.
+import { argon2id } from "hash-wasm";
+
+// These must NEVER be reduced after launch without a full vault migration.
 export const KDF_PARAMS = {
-  type: 2,          // Argon2id
   memory: 65536,    // 64 MiB
   iterations: 3,
   parallelism: 4,
@@ -28,34 +28,22 @@ export interface DerivedKey {
 
 /**
  * Derives a 256-bit master key from a master password.
- * Uses the Web Crypto API's SubtleCrypto where possible, with
- * Argon2id via WebAssembly for the memory-hard KDF step.
  */
 export async function deriveMasterKey(
   masterPassword: string,
   salt: Uint8Array,
 ): Promise<DerivedKey> {
-  // Dynamic import so this works in both browser and Node (via wasm)
-  const argon2 = await getArgon2();
-
-  const result = await argon2.hash({
-    pass: masterPassword,
+  const hash = await argon2id({
+    password: masterPassword,
     salt,
-    type: KDF_PARAMS.type,
-    mem: KDF_PARAMS.memory,
-    time: KDF_PARAMS.iterations,
     parallelism: KDF_PARAMS.parallelism,
-    hashLen: KDF_PARAMS.hashLen,
+    iterations: KDF_PARAMS.iterations,
+    memorySize: KDF_PARAMS.memory,
+    hashLength: KDF_PARAMS.hashLen,
+    outputType: "binary",
   });
 
-  // Copy into a plain ArrayBuffer to avoid SharedArrayBuffer issues
-  const raw = result.hash;
-  const keyMaterial = raw.buffer.slice(
-    raw.byteOffset,
-    raw.byteOffset + raw.byteLength,
-  ) as ArrayBuffer;
-
-  return { keyMaterial, salt };
+  return { keyMaterial: hash.buffer.slice(hash.byteOffset, hash.byteOffset + hash.byteLength) as ArrayBuffer, salt };
 }
 
 /**
@@ -112,29 +100,4 @@ export async function deriveSubkeys(keyMaterial: ArrayBuffer): Promise<{
   ]);
 
   return { encryptionKey, macKey };
-}
-
-// ---------------------------------------------------------------------------
-// Argon2 runtime loader
-// ---------------------------------------------------------------------------
-
-let argon2Instance: Awaited<ReturnType<typeof loadArgon2>> | null = null;
-
-async function loadArgon2() {
-  // In browser/extension environments, use argon2-browser (WASM)
-  // In Node.js (server-side testing), fall back to a pure-JS shim
-  if (typeof window !== "undefined" || typeof self !== "undefined") {
-    const mod = await import("argon2-browser");
-    return mod.default ?? mod;
-  }
-  // Node.js: use the hash function directly
-  const mod = await import("argon2-browser/dist/argon2.js");
-  return mod.default ?? mod;
-}
-
-async function getArgon2() {
-  if (!argon2Instance) {
-    argon2Instance = await loadArgon2();
-  }
-  return argon2Instance;
 }

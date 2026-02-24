@@ -12,6 +12,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useKeynestStore } from "../store.ts";
 import { findMatchingLogins, getLoginFields } from "@keynest/vault";
 import type { LoginItem } from "@keynest/vault";
+import { FaviconImage } from "../components/FaviconImage.tsx";
 
 export function OverlayView() {
   const { items, autofillHostname, encryptionKey, setView } = useKeynestStore();
@@ -153,7 +154,6 @@ function CredentialRow({
   onSelect: () => void;
 }) {
   const fields = getLoginFields(item);
-  const initial = item.name.charAt(0).toUpperCase();
 
   return (
     <motion.button
@@ -165,15 +165,7 @@ function CredentialRow({
       }`}
     >
       {/* Avatar */}
-      <div
-        className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
-          isSelected
-            ? "bg-indigo-500 text-white"
-            : "bg-white/10 text-white/60"
-        }`}
-      >
-        {initial}
-      </div>
+      <FaviconImage hostname={item.hostname} name={item.name} isSelected={isSelected} />
 
       {/* Name + username */}
       <div className="flex-1 min-w-0">

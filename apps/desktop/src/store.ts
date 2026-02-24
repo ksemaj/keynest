@@ -30,6 +30,9 @@ interface KeynestState {
   autofillHostname: string | null;
   autofillFieldPosition: { x: number; y: number } | null;
 
+  // Selected item (for detail view)
+  selectedItemId: string | null;
+
   // Actions
   setView: (view: AppView) => void;
   unlock: (key: CryptoKey, items: VaultItem[]) => void;
@@ -37,6 +40,7 @@ interface KeynestState {
   setItems: (items: VaultItem[]) => void;
   setSearchQuery: (query: string) => void;
   setAutofillContext: (hostname: string | null, position: { x: number; y: number } | null) => void;
+  setSelectedItem: (id: string | null) => void;
 }
 
 export const useKeynestStore = create<KeynestState>((set) => ({
@@ -47,6 +51,7 @@ export const useKeynestStore = create<KeynestState>((set) => ({
   searchQuery: "",
   autofillHostname: null,
   autofillFieldPosition: null,
+  selectedItemId: null,
 
   setView: (view) => set({ view }),
 
@@ -61,6 +66,7 @@ export const useKeynestStore = create<KeynestState>((set) => ({
       view: "locked",
       searchQuery: "",
       autofillHostname: null,
+      selectedItemId: null,
     }),
 
   setItems: (items) => set({ items }),
@@ -69,4 +75,6 @@ export const useKeynestStore = create<KeynestState>((set) => ({
 
   setAutofillContext: (autofillHostname, autofillFieldPosition) =>
     set({ autofillHostname, autofillFieldPosition }),
+
+  setSelectedItem: (selectedItemId) => set({ selectedItemId }),
 }));
